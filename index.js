@@ -15,6 +15,9 @@ function PhotoClient (options) {
   extend(config, options);
 
   // throw if any required options are missing
+  if (!config.endpoint) {
+    throw new Error('Photos API endpoint is required')
+  }
   if (!config.username) {
     throw new Error('Photos API username is required');
   }
