@@ -1,6 +1,10 @@
 'use strict';
 
 var extend = require('extend');
+var apiPaths = {
+  token: '/Account/Token',
+  photo: '/Values'
+};
 
 function PhotoClient (options) {
   var config = {
