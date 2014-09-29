@@ -35,12 +35,16 @@ function PhotoClient (options) {
   this.config = config;
 }
 
-PhotoClient.prototype.getToken = function(callback) {
-  var tokenUrl = this.config.endpoint + apiPaths.token;
-  request.post(tokenUrl, { form: { "AccountName": this.config.username, "Password": this.config.password }}, function(err, response, body) {
-    if (err) { return console.log(err); }
-    callback(JSON.parse(body))
-  });
+PhotoClient.prototype.getToken = function() {
+  var options = {
+    uri: this.config.endpoint + apiPaths.token,
+    method: 'POST',
+    form: {
+      'AccountName': this.config.username,
+      'Password': this.config.password
+    }
+  };
+  return rp(options).then(function(token) { return JSON.parse(token); });
 }
 
 
