@@ -1,7 +1,7 @@
 'use strict';
 
 var extend = require('extend');
-var request = require('request');
+var rp = require('request-promise');
 
 var apiPaths = {
   token: '/Account/Token',
