@@ -38,17 +38,11 @@ describe('#getToken', function() {
   
   it('AccountName property should match the username passed in config', function(done) {
     var client = new PhotoClient(config);
-    client.getToken(function(token) {
-      token.AccountName.should.equal(client.config.username);
-      done();
-    });
+    client.getToken().should.be.fulfilled.and.eventually.have.property('AccountName').that.equals('canvas').and.notify(done);
   });
 
   it('ServiceToken property should not be empty', function(done) {
     var client = new PhotoClient(config);
-    client.getToken(function(token) {
-      token.ServiceToken.should.not.be.empty;
-      done();
-    });
+    client.getToken().should.be.fulfilled.and.eventually.have.property('ServiceToken').and.notify(done);
   });
 });
