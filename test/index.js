@@ -5,8 +5,7 @@ var config = require('./config');
 var PhotoClient = require('../index');
 var assert = require('assert');
 
-describe('PhotoClient', function() {
-  describe('Initialization', function() {
+describe('Initialization', function() {
 
     it('should throw an error if no username passed', function(done) {
       (function() { return new PhotoClient(); }).should.throw();
