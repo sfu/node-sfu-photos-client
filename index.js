@@ -1,6 +1,8 @@
 'use strict';
 
 var extend = require('extend');
+var request = require('request');
+
 var apiPaths = {
   token: '/Account/Token',
   photo: '/Values'
@@ -33,7 +35,16 @@ function PhotoClient (options) {
   this.config = config;
 }
 
-PhotoClient.prototype.getPhoto = function(ids) {
+PhotoClient.prototype.getToken = function(callback) {
+  var tokenUrl = this.config.endpoint + apiPaths.token;
+  request.post(tokenUrl, { form: { "AccountName": this.config.username, "Password": this.config.password }}, function(err, response, body) {
+    if (err) { return console.log(err); }
+    callback(JSON.parse(body))
+  });
+}
+
+
+PhotoClient.prototype.getPhoto = function(ids, batch) {
   return false
 }
 
