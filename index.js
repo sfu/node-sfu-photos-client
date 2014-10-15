@@ -1,7 +1,8 @@
 'use strict';
 
 var extend = require('extend');
-var rp = require('request-promise');
+var request = require('request');
+var redis = require('redis');
 
 var apiPaths = {
   token: '/Account/Token',
@@ -11,14 +12,19 @@ var apiPaths = {
 function PhotoClient (options) {
   var config = {
     cache: {
-      redisUrl: "redis://localhost:6379",
+      redisHost: "localhost",
+      redisPort: 6379,
       redisOptions: {
         detect_buffers: true
       },
-      photoCacheLifetime: 3600,
+      photoExpiry: 3600,
+      tokenExpiry: 86400,
+      photoPrefix: 'photo:',
+      tokenKey: 'token'
     }
   };
   extend(config, options);
+  this.config = config;
 
   // throw if any required options are missing
   if (!config.endpoint) {
@@ -27,15 +33,16 @@ function PhotoClient (options) {
   if (!config.username) {
     throw new Error('Photos API username is required');
   }
-
   if (!config.password) {
     throw new Error('Photos API password is required');
   }
 
-  this.config = config;
+  // set up redis connection
+  this.tokenCache = redis.createClient(config.cache.redisPort, config.cache.redisHost, config.cache.redisOptions);
+  this.photoCache = redis.createClient(config.cache.redisPort, config.cache.redisHost, config.cache.redisOptions);
 }
 
-PhotoClient.prototype.getToken = function() {
+PhotoClient.prototype.getToken = function(cb) {
   var options = {
     uri: this.config.endpoint + apiPaths.token,
     method: 'POST',
@@ -44,12 +51,28 @@ PhotoClient.prototype.getToken = function() {
       'Password': this.config.password
     }
   };
-  return rp(options).then(function(token) { return JSON.parse(token); });
+  
+  var self = this;
+  self.tokenCache.get(self.config.cache.tokenKey, function(err, token) {
+    if (err || !token) {
+      request(options, function(err, response, body) {
+        if (err) {
+          cb(err);
+        } else {
+          var token = JSON.parse(body)['ServiceToken'];
+          self.tokenCache.setex(self.config.cache.tokenKey, self.config.cache.tokenExpiry, token);
+          cb(null, token);
+        }
+      });
+    } else {
+      cb(null, token);
+    }
+  });
 }
 
 
-PhotoClient.prototype.getPhoto = function(ids, batch) {
-  return false
+PhotoClient.prototype.getPhoto = function(id, cb) {
+  return false;
 }
 
 module.exports = PhotoClient;
