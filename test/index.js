@@ -36,13 +36,28 @@ describe('Initialization', function() {
 
 describe('#getToken', function() {
   
-  it('AccountName property should match the username passed in config', function(done) {
+  it('should return a string and not an error', function(done) {
     var client = new PhotoClient(config);
-    client.getToken().should.be.fulfilled.and.eventually.have.property('AccountName').that.equals('canvas').and.notify(done);
+    client.getToken(function(err, token) {
+      chai.expect(err).to.not.exist;
+      token.should.not.be.empty;
+      token.should.be.a('string');
+      done();
+    });
   });
 
-  it('ServiceToken property should not be empty', function(done) {
+});
+
+describe('#getPhoto', function() {
+  
+  it('should return a string and not an error', function(done) {
     var client = new PhotoClient(config);
-    client.getToken().should.be.fulfilled.and.eventually.have.property('ServiceToken').and.notify(done);
+    client.getPhoto(973004918, function(err, photo) {
+      chai.expect(err).to.not.exist;
+      photo.should.not.be.empty;
+      photo.should.be.a('string');
+      done();
+    });
   });
+
 });
