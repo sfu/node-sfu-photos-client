@@ -72,7 +72,39 @@ PhotoClient.prototype.getToken = function(cb) {
 
 
 PhotoClient.prototype.getPhoto = function(id, cb) {
-  return false;
+  var self = this;
+  var options = {
+    uri: self.config.endpoint + apiPaths.photo + '/' + id, 
+    method: 'GET',
+  }
+
+  var cacheKey = self.config.cache.photoPrefix + id;
+  self.photoCache.get(cacheKey, function(err, photo) {
+    if (err || !photo) {
+      self.getToken(function(err, token) {
+        options.headers = {
+          'Authorization': 'Bearer ' + token
+        };
+        request(options, function(err, response, body) {
+          if (err) {
+            cb(err);
+          } else {
+            var photoData = JSON.parse(body);
+            self.photoCache.setex(cacheKey, self.config.cache.photoExpiry, photoData[0].PictureIdentification, function(err, res) {
+              if (err) {
+                cb(err);
+              } else {
+                cb(null, photoData[0].PictureIdentification);
+              }
+            });
+          }
+        });
+      });
+    } else {
+      cb(null, photo);
+    }
+  });
+
 }
 
 module.exports = PhotoClient;
