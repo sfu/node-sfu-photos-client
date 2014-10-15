@@ -50,12 +50,14 @@ describe('#getToken', function() {
 
 describe('#getPhoto', function() {
   
-  it('should return a string and not an error', function(done) {
+  it('should return a string and not an error and should match the sample data', function(done) {
     var client = new PhotoClient(config);
-    client.getPhoto(973004918, function(err, photo) {
+    var fixtures = require('./fixtures');
+    client.getPhoto(fixtures[0].SfuId, function(err, photo) {
       chai.expect(err).to.not.exist;
       photo.should.not.be.empty;
       photo.should.be.a('string');
+      photo.should.equal(fixtures[0].PictureIdentification);
       done();
     });
   });
