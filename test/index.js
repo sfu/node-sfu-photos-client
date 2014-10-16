@@ -50,7 +50,7 @@ describe('#getToken', function() {
 
 describe('#getPhoto', function() {
   
-  it('should return a string and not an error and should match the sample data', function(done) {
+  it('call for a single photo should return a string and not an error and should match the sample data', function(done) {
     var client = new PhotoClient(config);
     var fixtures = require('./fixtures/1user.json');
     client.getPhoto(fixtures[0].SfuId, function(err, photo) {
