@@ -52,7 +52,7 @@ describe('#getPhoto', function() {
   
   it('should return a string and not an error and should match the sample data', function(done) {
     var client = new PhotoClient(config);
-    var fixtures = require('./fixtures');
+    var fixtures = require('./fixtures/1user.json');
     client.getPhoto(fixtures[0].SfuId, function(err, photo) {
       chai.expect(err).to.not.exist;
       photo.should.not.be.empty;
@@ -61,5 +61,7 @@ describe('#getPhoto', function() {
       done();
     });
   });
+
+
 
 });
