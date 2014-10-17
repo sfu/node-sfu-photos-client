@@ -3,12 +3,10 @@
 var chai = require('chai');
 var should = chai.should();
 var chaiAsPromised = require("chai-as-promised");
-chai.should();
 chai.use(chaiAsPromised);
 
 var config = require('./config');
 var PhotoClient = require('../index');
-
 
 describe('Initialization', function() {
 
