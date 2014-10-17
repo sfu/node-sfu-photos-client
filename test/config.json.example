@@ -1,4 +1,6 @@
 {
     "username": "foo",
-    "password": "bar"
+    "password": "bar",
+    "endpoint": "https://photos-api",
+    "maxPhotosPerRequest": 10
 }
