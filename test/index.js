@@ -53,6 +53,13 @@ describe('#getToken', function() {
 });
 
 describe('#getPhoto', function() {
+
+  var client = new PhotoClient(config);
+
+  before(function(done) {
+    client.flushCache('photo');
+    done();
+  });
   
   it('call for a single photo should return a string and not an error and should match the sample data', function(done) {
     var client = new PhotoClient(config);
