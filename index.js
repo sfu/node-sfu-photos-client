@@ -128,9 +128,12 @@ PhotoClient.prototype.getPhoto = function(ids, cb) {
                 multi.setex(self.config.cache.photoPrefix + photo.SfuId, self.config.cache.photoExpiry, JSON.stringify(photo));
               });
               multi.exec(function(err, replies) {
-                console.log(arguments);
+                if (err) {
+                  cb(err);
+                } else {
+                  done();
+                }
               });
-              done();
             }
           })
         });
