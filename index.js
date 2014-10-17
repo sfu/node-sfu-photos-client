@@ -71,39 +71,77 @@ PhotoClient.prototype.getToken = function(cb) {
 }
 
 
-PhotoClient.prototype.getPhoto = function(id, cb) {
+PhotoClient.prototype.getPhoto = function(ids, cb) {
+  if (!Array.isArray(ids)) {
+    ids.toString().split(',');
+  }
+  var photosToFetch = ids.length;
   var self = this;
-  var options = {
-    uri: self.config.endpoint + apiPaths.photo + '/' + id, 
-    method: 'GET',
+
+  var returnedPhotos = {};
+  var idsToFetch = ids.map(function(x) { return x; });
+  var cacheIds = ids.map(function(id) { return self.config.cache.photoPrefix + id; });
+
+  function done() {
+    var arr = ids.map(function(id) {
+      return returnedPhotos[id];
+    });
+    cb(null, arr);
   }
 
-  var cacheKey = self.config.cache.photoPrefix + id;
-  self.photoCache.get(cacheKey, function(err, photo) {
-    if (err || !photo) {
-      self.getToken(function(err, token) {
-        options.headers = {
-          'Authorization': 'Bearer ' + token
-        };
-        request(options, function(err, response, body) {
-          if (err) {
-            cb(err);
-          } else {
-            var photoData = JSON.parse(body);
-            self.photoCache.setex(cacheKey, self.config.cache.photoExpiry, photoData[0].PictureIdentification, function(err, res) {
-              if (err) {
-                cb(err);
-              } else {
-                cb(null, photoData[0].PictureIdentification);
-              }
-            });
-          }
-        });
-      });
+  self.photoCache.mget(cacheIds, function(err, results) {
+    if (err) {
+      // TODO handle error
     } else {
-      cb(null, photo);
+      // results is an array that will have null values where there was no data in the cache
+      // if we got back a cached photo we should remove the entry from the ids array and push the result into returnedPhotos
+      results.forEach(function(photo) {
+        if (photo) {
+          photo = JSON.parse(photo);
+          var idsPos = ids.indexOf(photo.SfuId);
+          returnedPhotos[photo.SfuId] = photo;
+          idsToFetch.splice(idsPos, 1);  
+        }
+      });
+      // now idsToFetch contains only the ids of photos we need to fecth from the api
+      // we can fetch in bulk
+      // TODO we need to handle having more photos to fecth than what the token allows
+      if (idsToFetch.length) {
+        var options = {
+          uri: self.config.endpoint + apiPaths.photo + '/' + idsToFetch.join(','),
+          method: 'GET',
+        }
+        self.getToken(function(err, token) {
+          // TODO handle error case
+          options.headers = {
+            'Authorization': 'Bearer ' + token
+          };
+          request(options, function(err, response, body) {
+            if (err) {
+              cb(err);
+            } else {
+              var photoData = JSON.parse(body);
+              var multi = self.photoCache.multi();
+              photoData.forEach(function(photo) {
+                var idsPos = ids.indexOf(photo.SfuId);
+                returnedPhotos[photo.SfuId] = photo;
+                multi.setex(self.config.cache.photoPrefix + photo.SfuId, self.config.cache.photoExpiry, JSON.stringify(photo));
+              });
+              multi.exec(function(err, replies) {
+                console.log(arguments);
+              });
+              done();
+            }
+          })
+        });
+      } else {
+        done();
+      }
+      
     }
   });
+}
+
 PhotoClient.prototype.flushCache = function(type) {
   var self = this;
   function flushTokenCache() {
