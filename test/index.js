@@ -10,18 +10,18 @@ var PhotoClient = require('../index');
 
 describe('Initialization', function() {
 
-  it('should throw an error if no API endpoint passed', function(done) {
+  it('should throw an error if no API endpoint passed in config', function(done) {
     (function() { return new PhotoClient({endpoint: null}); }).should.Throw();
     done();
   })
 
-  it('should throw an error if no username passed', function(done) {
-    (function() { return new PhotoClient({username: null}); }).should.Throw();
+  it('should throw an error if no username passed in config', function(done) {
+    (function() { return new PhotoClient({endpoint: 'http://photos-api', username: null}); }).should.Throw();
     done();
   });
 
-  it('should throw an error if no password passed', function(done) {
-    (function() { return new PhotoClient({username: 'test'}); }).should.Throw();
+  it('should throw an error if no password passed in config', function(done) {
+    (function() { return new PhotoClient({endpoint: 'http://photos-api', username: 'test'}); }).should.Throw();
     done();
   });
 
