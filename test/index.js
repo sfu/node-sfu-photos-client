@@ -40,9 +40,9 @@ describe('Initialization', function() {
 describe('#getToken', function() {
 
   var client = new PhotoClient(config);
-  before(function(done) {
-    client.flushCache('token');
-    done();
+
+  beforeEach(function(done) {
+    client.flushCache(function() { done(); });
   });
 
   it('should return a string and not an error', function(done) {
@@ -61,9 +61,8 @@ describe('#getPhoto', function() {
 
   var client = new PhotoClient(config);
 
-  before(function(done) {
-    client.flushCache('photo');
-    done();
+  beforeEach(function(done) {
+    client.flushCache(function() { done(); });
   });
   
   it('call for a single photo should return an array of one photo and not an error and should match the sample data', function(done) {
