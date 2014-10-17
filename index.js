@@ -36,7 +36,10 @@ function PhotoClient (options) {
   if (!config.password) {
     throw new Error('Photos API password is required');
   }
-
+  if (!config.maxPhotosPerRequest) {
+    throw new Error('"maxPhotosPerRequest" value is required');
+  }
+  
   // set up redis connection
   this.tokenCache = redis.createClient(config.cache.redisPort, config.cache.redisHost, config.cache.redisOptions);
   this.photoCache = redis.createClient(config.cache.redisPort, config.cache.redisHost, config.cache.redisOptions);
