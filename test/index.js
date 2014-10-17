@@ -25,7 +25,12 @@ describe('Initialization', function() {
     done();
   });
 
-  it('should not throw an error if both username and password passed', function(done) {
+  it('should throw an error if no maxPhotosPerRequest passed in config', function(done) {
+    (function() { return new PhotoClient({endpoint: 'http://photos-api', username: 'test', password: 'password'}); }).should.Throw();
+    done();
+  });
+
+  it('should not throw an error if both username and password passed in config', function(done) {
     (function() { return new PhotoClient(config); }).should.not.Throw();
     done();
   });
