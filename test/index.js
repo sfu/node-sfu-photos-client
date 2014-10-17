@@ -65,26 +65,34 @@ describe('#getPhoto', function() {
     client.flushCache(function() { done(); });
   });
   
-  it('call for a single photo should return an array of one photo and not an error and should match the sample data', function(done) {
+  it('it should return a single photo in an array and not an error and match the fixture data', function(done) {
     var fixtures = require('./fixtures/1user.json');
     var ids = fixtures.map(function(x) { return x.SfuId; });
     client.getPhoto(ids, function(err, photos) {
       chai.expect(err).to.not.exist;
       photos.should.be.an('array');
-      photos[0].should.be.an('object');
       photos.should.deep.equal(fixtures);
       done();
     });
   });
 
-  it('call for multpile photos should return an array of photos and not an error and should match the sample data', function(done) {
+  it('should return multiple photos in an array of the same length as the fixture data and not an error and match the fixture data', function(done) {
     var fixtures = require('./fixtures/10users.json');
     var ids = fixtures.map(function(x) { return x.SfuId; });
     client.getPhoto(ids, function(err, photos) {
       chai.expect(err).to.not.exist;
       photos.should.be.an('array');
       photos.should.have.length(fixtures.length);
-      // photos should be returned in the same order
+      photos.should.deep.equal(fixtures);
+      done();
+    });
+  });
+
+  it('should return photos in the same order in which they were requested', function(done) {
+    var fixtures = require('./fixtures/10users.json');
+    var ids = fixtures.map(function(x) { return x.SfuId; });
+    client.getPhoto(ids, function(err, photos) {
+      chai.expect(err).to.not.exist;
       var returnedIds = [];
       photos.forEach(function(photo) {
         returnedIds.push(photo.SfuId);
