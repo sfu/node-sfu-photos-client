@@ -61,14 +61,14 @@ describe('#getPhoto', function() {
     done();
   });
   
-  it('call for a single photo should return a string and not an error and should match the sample data', function(done) {
-    var client = new PhotoClient(config);
+  it('call for a single photo should return an array of one photo and not an error and should match the sample data', function(done) {
     var fixtures = require('./fixtures/1user.json');
-    client.getPhoto(fixtures[0].SfuId, function(err, photo) {
+    var ids = fixtures.map(function(x) { return x.SfuId; });
+    client.getPhoto(ids, function(err, photos) {
       chai.expect(err).to.not.exist;
-      photo.should.not.be.empty;
-      photo.should.be.a('string');
-      photo.should.equal(fixtures[0].PictureIdentification);
+      photos.should.be.an('array');
+      photos[0].should.be.an('object');
+      photos.should.deep.equal(fixtures);
       done();
     });
   });
