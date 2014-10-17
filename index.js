@@ -122,6 +122,8 @@ PhotoClient.prototype.getPhoto = function(ids, cb) {
           request(options, function(err, response, body) {
             if (err) {
               cb(err);
+            } else if (response.statusCode !== 200) {
+              cb(body);
             } else {
               var photoData = JSON.parse(body);
               var multi = self.photoCache.multi();
