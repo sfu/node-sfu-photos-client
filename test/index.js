@@ -33,9 +33,15 @@ describe('Initialization', function() {
 });
 
 describe('#getToken', function() {
-  
+
+  var client = new PhotoClient(config);
+  before(function(done) {
+    client.flushCache('token');
+    done();
+  });
+
   it('should return a string and not an error', function(done) {
-    var client = new PhotoClient(config);
+    // var client = new PhotoClient(config);
     client.getToken(function(err, token) {
       chai.expect(err).to.not.exist;
       token.should.not.be.empty;
