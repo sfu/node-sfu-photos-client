@@ -73,6 +73,21 @@ describe('#getPhoto', function() {
     });
   });
 
-
+  it('call for multpile photos should return an array of photos and not an error and should match the sample data', function(done) {
+    var fixtures = require('./fixtures/10users.json');
+    var ids = fixtures.map(function(x) { return x.SfuId; });
+    client.getPhoto(ids, function(err, photos) {
+      chai.expect(err).to.not.exist;
+      photos.should.be.an('array');
+      photos.should.have.length(fixtures.length);
+      // photos should be returned in the same order
+      var returnedIds = [];
+      photos.forEach(function(photo) {
+        returnedIds.push(photo.SfuId);
+      });
+      ids.should.deep.equal(returnedIds);
+      done();
+    });
+  });
 
 });
