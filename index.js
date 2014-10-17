@@ -104,7 +104,35 @@ PhotoClient.prototype.getPhoto = function(id, cb) {
       cb(null, photo);
     }
   });
+PhotoClient.prototype.flushCache = function(type) {
+  var self = this;
+  function flushTokenCache() {
+    self.tokenCache.del(self.config.cache.tokenKey, function(err, results) {});
+  }
 
+  function flushPhotoCache() {
+    self.photoCache.keys(self.config.cache.photoPrefix + '*', function(err, results) {
+      results.forEach(function(key) {
+        self.photoCache.del(key, function(err, results) {});
+      })
+    });
+  }
+
+  switch(type) {
+    case 'token':
+    flushTokenCache();
+    break;
+
+    case 'photo':
+    flushPhotoCache();
+    break;
+
+    default:
+    flushTokenCache();
+    flushPhotoCache();
+    break;
+
+  }
 }
 
 module.exports = PhotoClient;
