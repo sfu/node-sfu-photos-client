@@ -46,7 +46,6 @@ describe('#getToken', function() {
   });
 
   it('should return a string and not an error', function(done) {
-    // var client = new PhotoClient(config);
     client.getToken(function(err, token) {
       chai.expect(err).to.not.exist;
       token.should.not.be.empty;
@@ -98,6 +97,14 @@ describe('#getPhoto', function() {
         returnedIds.push(photo.SfuId);
       });
       ids.should.deep.equal(returnedIds);
+      done();
+    });
+  });
+
+  it('should handle requesting more photos than the token allows', function(done) {
+    var ids = ['200057415','973004918','943014302','933013725','943011423','555003006','870125854','200038771','555002960','831015698','892012342'];
+    client.getPhoto(ids, function(err, photos) {
+      chai.expect(err).to.not.exist;
       done();
     });
   });
