@@ -2,5 +2,20 @@
     "username": "foo",
     "password": "bar",
     "endpoint": "https://photos-api",
-    "maxPhotosPerRequest": 10
+    "maxPhotosPerRequest": 10,
+    "cache": {
+        "store": "redis",
+        "options": {
+            "redisHost": "localhost",
+            "redisPort": 6379,
+            "redisDatabase": 0,
+            "redisOptions": {
+              "detect_buffers": true
+            },
+            "photoExpiry": 3600,
+            "tokenExpiry": 86400,
+            "photoPrefix": "photo:",
+            "tokenKey": "token"
+        }
+    }
 }
