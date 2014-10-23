@@ -2,25 +2,18 @@
 
 var extend = require('extend');
 var request = require('request');
-var redis = require('redis');
+var fs = require('fs');
 
 var apiPaths = {
   token: '/Account/Token',
   photo: '/Values'
 };
 
-function PhotoClient (options) {
+function PhotoClient(options) {
   var config = {
     cache: {
-      redisHost: "localhost",
-      redisPort: 6379,
-      redisOptions: {
-        detect_buffers: true
-      },
-      photoExpiry: 3600,
-      tokenExpiry: 86400,
-      photoPrefix: 'photo:',
-      tokenKey: 'token'
+      store: 'none',
+      options: {}
     }
   };
   extend(config, options);
@@ -39,10 +32,16 @@ function PhotoClient (options) {
   if (!config.maxPhotosPerRequest) {
     throw new Error('"maxPhotosPerRequest" value is required');
   }
-  
-  // set up redis connection
-  this.tokenCache = redis.createClient(config.cache.redisPort, config.cache.redisHost, config.cache.redisOptions);
-  this.photoCache = redis.createClient(config.cache.redisPort, config.cache.redisHost, config.cache.redisOptions);
+
+  var CacheStore;
+  if (typeof config.cache.store === 'function') {
+    CacheStore = config.cache.store;
+  } else if ((typeof config.cache.store === 'string') && (fs.existsSync('./cache_stores/' + config.cache.store + '.js'))) {
+    CacheStore = require('./cache_stores/' + config.cache.store);
+  } else {
+    throw new Error('Invalid cache store specified: '+ config.cache.store.toString());
+  }
+  this.cache = new CacheStore(config.cache.options);
 }
 
 PhotoClient.prototype.getToken = function(cb) {
@@ -56,14 +55,14 @@ PhotoClient.prototype.getToken = function(cb) {
   };
   
   var self = this;
-  self.tokenCache.get(self.config.cache.tokenKey, function(err, token) {
+  self.cache.getToken(function(err, token) {
     if (err || !token) {
       request(options, function(err, response, body) {
         if (err) {
           cb(err);
         } else {
           var token = JSON.parse(body)['ServiceToken'];
-          self.tokenCache.setex(self.config.cache.tokenKey, self.config.cache.tokenExpiry, token);
+          self.cache.setToken(token);
           cb(null, token);
         }
       });
@@ -92,7 +91,7 @@ PhotoClient.prototype.getPhoto = function(ids, cb) {
     cb(null, arr);
   }
 
-  self.photoCache.mget(cacheIds, function(err, results) {
+  self.cache.getPhotos(cacheIds, function(err, results) {
     if (err) {
       // TODO handle error
     } else {
@@ -126,13 +125,11 @@ PhotoClient.prototype.getPhoto = function(ids, cb) {
               cb(body);
             } else {
               var photoData = JSON.parse(body);
-              var multi = self.photoCache.multi();
               photoData.forEach(function(photo) {
                 var idsPos = ids.indexOf(photo.SfuId);
                 returnedPhotos[photo.SfuId] = photo;
-                multi.setex(self.config.cache.photoPrefix + photo.SfuId, self.config.cache.photoExpiry, JSON.stringify(photo));
               });
-              multi.exec(function(err, replies) {
+              self.cache.setPhotos(photoData, function(err, results) {
                 if (err) {
                   cb(err);
                 } else {
@@ -140,19 +137,12 @@ PhotoClient.prototype.getPhoto = function(ids, cb) {
                 }
               });
             }
-          })
+          });
         });
       } else {
         done();
       }
-      
     }
-  });
-}
-
-PhotoClient.prototype.flushCache = function(cb) {
-  this.photoCache.flushall(function(err, response) {
-    cb();
   });
 }
 

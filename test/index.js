@@ -30,6 +30,13 @@ describe('Initialization', function() {
     done();
   });
 
+  it('should throw an error if an invalid cache store is specified in config', function(done) {
+    var opts = JSON.parse(JSON.stringify(config));
+    opts.cache.store = 'invalid';
+    (function() { return new PhotoClient(opts); }).should.Throw();
+    done();
+  });
+
   it('should not throw an error if both username and password passed in config', function(done) {
     (function() { return new PhotoClient(config); }).should.not.Throw();
     done();
@@ -42,7 +49,7 @@ describe('#getToken', function() {
   var client = new PhotoClient(config);
 
   beforeEach(function(done) {
-    client.flushCache(function() { done(); });
+    client.cache.flush(function() { done(); });
   });
 
   it('should return a string and not an error', function(done) {
@@ -61,7 +68,7 @@ describe('#getPhoto', function() {
   var client = new PhotoClient(config);
 
   beforeEach(function(done) {
-    client.flushCache(function() { done(); });
+    client.cache.flush(function() { done(); });
   });
   
   it('it should return a single photo in an array and not an error and match the fixture data', function(done) {
