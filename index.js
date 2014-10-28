@@ -3,6 +3,7 @@
 var extend = require('extend');
 var request = require('request');
 var fs = require('fs');
+var Q = require('q');
 
 var apiPaths = {
   token: '/Account/Token',
