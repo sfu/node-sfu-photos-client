@@ -121,13 +121,33 @@ describe('#getToken with promises', function() {
     });
   });
 
-  it('should handle requesting more photos than the token allows', function(done) {
-    var ids = ['200057415','973004918','943014302','933013725','943011423','555003006','870125854','200038771','555002960','831015698','892012342'];
+  it('should handle requesting more photos than the maxPhotosPerRequest value', function(done) {
+    var fixtures = require('./fixtures/11users.json');
+    var ids = fixtures.map(function(x) { return x.SfuId; });
+
     client.getPhoto(ids, function(err, photos) {
       chai.expect(err).to.not.exist;
+      var returnedIds = [];
+      photos.forEach(function(photo) {
+        returnedIds.push(photo.SfuId);
+      });
+      ids.should.deep.equal(returnedIds);
       done();
     });
   });
+
+  it('should accept a number literal as the id paramter', function(done) {
+    var fixtures = require('./fixtures/1user.json');
+    var ids = parseInt(fixtures[0].SfuId);
+    client.getPhoto(ids, function(err, photos) {
+      chai.expect(err).to.not.exist;
+      photos.should.be.an('array');
+      photos.should.deep.equal(fixtures);
+      done();
+    });
+  });
+
+});
 
 describe('#getPhoto with promises', function() {
   this.timeout(10000);
