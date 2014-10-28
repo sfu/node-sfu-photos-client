@@ -11,6 +11,32 @@ var apiPaths = {
 };
 
 var internals = {};
+internals.fetchTokenFromApi = function() {
+  var deferred = Q.defer();
+  var self = this;
+  var options = {
+    uri: this.config.endpoint + apiPaths.token,
+    method: 'POST',
+    form: {
+      'AccountName': this.config.username,
+      'Password': this.config.password
+    }
+  };
+
+  request(options, function(err, response, body) {
+    if (err) {
+      deferred.reject(err);
+    } else if (response.statusCode !== 200) {
+      deferred.reject(body)
+    } else {
+      var token = JSON.parse(body)['ServiceToken'];
+      self.cache.setToken(token);
+      deferred.resolve(token);
+    }
+  });
+  return deferred.promise;
+}
+
 internals.fetchPhotosFromApi = function(ids) {
   var deferred = Q.defer();
   var self = this;
@@ -76,28 +102,13 @@ function PhotoClient(options) {
 
 PhotoClient.prototype.getToken = function(cb) {
   var deferred = Q.defer();
-  var options = {
-    uri: this.config.endpoint + apiPaths.token,
-    method: 'POST',
-    form: {
-      'AccountName': this.config.username,
-      'Password': this.config.password
-    }
-  };
-  
   var self = this;
   self.cache.getToken(function(err, token) {
     if (err || !token) {
-      request(options, function(err, response, body) {
-        if (err) {
-          deferred.reject(body);
-        } else if (response.statusCode !== 200) {
-          err = new Error()
-        } else {
-          var token = JSON.parse(body)['ServiceToken'];
-          self.cache.setToken(token);
-          deferred.resolve(token);
-        }
+      internals.fetchTokenFromApi.call(self).then(function(token) {
+        deferred.resolve(token);
+      }).fail(function(err) {
+        deferred.reject(err);
       });
     } else {
       deferred.resolve(token);
@@ -154,7 +165,6 @@ PhotoClient.prototype.getPhoto = function(ids, cb) {
         var chunks = [], promises = [];
         var maxPhotosPerRequest = self.config.maxPhotosPerRequest;
         for (var i=0, j=idsToFetch.length; i<j; i+=maxPhotosPerRequest) {
-          var tmparr = 
           chunks.push(idsToFetch.slice(i,i+maxPhotosPerRequest));
         }
 
