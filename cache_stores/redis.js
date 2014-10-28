@@ -76,7 +76,26 @@ CacheStore.prototype.setToken = function(token, cb) {
   });
 };
 
-CacheStore.prototype.flush = function(cb) {
+CacheStore.prototype.flushToken = function(cb) {
+  this.client.del(this.config.tokenKey, function(err, result) {
+    cb();
+  });
+}
+
+CacheStore.prototype.flushPhotos = function(cb) {
+  var self = this;
+  this.client.keys(this.config.photoPrefix + '*', function(err, results) {
+    var multi = self.client.multi();
+    results.forEach(function(key) {
+      multi.del(key);
+    });
+    multi.exec(function(err, responses) {
+      cb();
+    });
+  });
+};
+
+CacheStore.prototype.flushAll = function(cb) {
   this.client.flushall(function(err, response) {
     cb();
   });

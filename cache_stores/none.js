@@ -18,7 +18,15 @@ CacheStore.prototype.setToken = function(token, cb) {
     }
 };
 
-CacheStore.prototype.flush = function(cb) {
+CacheStore.prototype.flushToken = function(cb) {
+    cb();
+};
+
+CacheStore.prototype.flushPhotos = function(cb) {
+    cb();
+};
+
+CacheStore.prototype.flushAll = function(cb) {
     cb();
 };
 
