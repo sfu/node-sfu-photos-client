@@ -136,7 +136,7 @@ PhotoClient.prototype.getPhoto = function(ids, cb) {
           photo = JSON.parse(photo);
           var idsPos = ids.indexOf(photo.SfuId);
           returnedPhotos[photo.SfuId] = photo;
-          idsToFetch.splice(idsPos, 1);  
+          idsToFetch.splice(idsPos, 1);
         }
       });
       // now idsToFetch contains only the ids of photos we need to fecth from the api
@@ -164,7 +164,7 @@ PhotoClient.prototype.getPhoto = function(ids, cb) {
         });
 
         var requests = Q.all(promises);
-        requests.then(function(results) { 
+        requests.then(function(results) {
           var merged = [];
           merged = merged.concat.apply(merged, results);
           merged.forEach(function(photo) {
