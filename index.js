@@ -10,6 +10,35 @@ var apiPaths = {
   photo: '/Values'
 };
 
+var internals = {};
+internals.fetchPhotosFromApi = function(ids) {
+  var deferred = Q.defer();
+  var self = this;
+  var options = {
+    uri: this.config.endpoint + apiPaths.photo + '/' + ids.join(','),
+    method: 'GET',
+  };
+
+  this.getToken().then(function(token) {
+    options.headers = {
+      'Authorization': 'Bearer ' + token
+    };
+
+    request(options, function(err, response, body) {
+      if (err) {
+        deferred.reject(err);
+      } else if (response.statusCode !== 200) {
+        deferred.reject(body);
+      } else {
+        var photoData = JSON.parse(body);
+        deferred.resolve(photoData);
+      }
+    });
+  });
+
+  return deferred.promise;
+};
+
 function PhotoClient(options) {
   var config = {
     cache: {
@@ -46,6 +75,7 @@ function PhotoClient(options) {
 }
 
 PhotoClient.prototype.getToken = function(cb) {
+  var deferred = Q.defer();
   var options = {
     uri: this.config.endpoint + apiPaths.token,
     method: 'POST',
@@ -60,21 +90,24 @@ PhotoClient.prototype.getToken = function(cb) {
     if (err || !token) {
       request(options, function(err, response, body) {
         if (err) {
-          cb(err);
+          deferred.reject(body);
+        } else if (response.statusCode !== 200) {
+          err = new Error()
         } else {
           var token = JSON.parse(body)['ServiceToken'];
           self.cache.setToken(token);
-          cb(null, token);
+          deferred.resolve(token);
         }
       });
     } else {
-      cb(null, token);
+      deferred.resolve(token);
     }
   });
-}
-
+  return deferred.promise.nodeify(cb);
+};
 
 PhotoClient.prototype.getPhoto = function(ids, cb) {
+  var deferred = Q.defer();
   if (!Array.isArray(ids)) {
     ids = ids.toString().split(',');
   }
@@ -89,7 +122,7 @@ PhotoClient.prototype.getPhoto = function(ids, cb) {
     var arr = ids.map(function(id) {
       return returnedPhotos[id];
     });
-    cb(null, arr);
+    deferred.resolve(arr);
   }
 
   self.cache.getPhotos(cacheIds, function(err, results) {
@@ -114,37 +147,40 @@ PhotoClient.prototype.getPhoto = function(ids, cb) {
           uri: self.config.endpoint + apiPaths.photo + '/' + idsToFetch.join(','),
           method: 'GET',
         }
-        self.getToken(function(err, token) {
-          // TODO handle error case
-          options.headers = {
-            'Authorization': 'Bearer ' + token
-          };
-          request(options, function(err, response, body) {
-            if (err) {
-              cb(err);
-            } else if (response.statusCode !== 200) {
-              cb(body);
-            } else {
-              var photoData = JSON.parse(body);
-              photoData.forEach(function(photo) {
-                var idsPos = ids.indexOf(photo.SfuId);
-                returnedPhotos[photo.SfuId] = photo;
-              });
-              self.cache.setPhotos(photoData, function(err, results) {
-                if (err) {
-                  cb(err);
-                } else {
-                  done();
-                }
-              });
-            }
+
+        // api tokens are limited to a set number of photos per GET request
+        // break the idsToFetchArray into chunks of ids no more than the maxPhotosPerRequest value
+        // and make GET requests in parallel
+        var chunks = [], promises = [];
+        var maxPhotosPerRequest = self.config.maxPhotosPerRequest;
+        for (var i=0, j=idsToFetch.length; i<j; i+=maxPhotosPerRequest) {
+          var tmparr = 
+          chunks.push(idsToFetch.slice(i,i+maxPhotosPerRequest));
+        }
+
+        chunks.forEach(function(chunk) {
+          var promise = internals.fetchPhotosFromApi.call(self, chunk);
+          promises.push(promise);
+        });
+
+        var requests = Q.all(promises);
+        requests.then(function(results) { 
+          var merged = [];
+          merged = merged.concat.apply(merged, results);
+          merged.forEach(function(photo) {
+            var idsPos = ids.indexOf(photo.SfuId);
+            returnedPhotos[photo.SfuId] = photo;
           });
+          done();
+        }).fail(function(err) {
+          deferred.reject(err);
         });
       } else {
         done();
       }
     }
   });
+  return deferred.promise.nodeify(cb);
 }
 
 module.exports = PhotoClient;
