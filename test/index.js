@@ -49,7 +49,7 @@ describe('#getToken', function() {
   var client = new PhotoClient(config);
 
   beforeEach(function(done) {
-    client.cache.flush(function() { done(); });
+    client.cache.flushToken(function() { done(); });
   });
 
   it('should return a string and not an error', function(done) {
@@ -81,7 +81,7 @@ describe('#getToken with promises', function() {
   var client = new PhotoClient(config);
 
   beforeEach(function(done) {
-    client.cache.flush(function() { done(); });
+    client.cache.flushPhotos(function() { done(); });
   });
   
   it('it should return a single photo in an array and not an error and match the fixture data', function(done) {
