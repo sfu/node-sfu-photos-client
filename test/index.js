@@ -85,7 +85,7 @@ describe('#getPhoto with callbacks', function() {
   beforeEach(function(done) {
     client.cache.flushPhotos(function() { done(); });
   });
-  
+
   it('it should return a single photo in an array and not an error and match the fixture data', function(done) {
     var fixtures = require('./fixtures/1user.json');
     var ids = fixtures.map(function(x) { return x.SfuId; });
