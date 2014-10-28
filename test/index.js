@@ -116,4 +116,75 @@ describe('#getPhoto', function() {
     });
   });
 
+describe('#getPhoto with promises', function() {
+  this.timeout(10000);
+  var client = new PhotoClient(config);
+
+  beforeEach(function(done) {
+    client.cache.flushPhotos(function() { done(); });
+  });
+
+  it('it should return a single photo in an array and not an error and match the fixture data', function(done) {
+    var fixtures = require('./fixtures/1user.json');
+    var ids = fixtures.map(function(x) { return x.SfuId; });
+    return client.getPhoto(ids).should.eventually.be.an('array').
+           and.deep.equal(fixtures).
+           and.notify(done);
+  });
+
+  it('should return multiple photos in an array of the same length as the fixture data and not an error and match the fixture data', function(done) {
+    var fixtures = require('./fixtures/10users.json');
+    var ids = fixtures.map(function(x) { return x.SfuId; });
+    return client.getPhoto(ids).should.eventually.be.an('array').
+           and.have.length(fixtures.length).
+           and.deep.equal(fixtures).
+           and.notify(done);
+  });
+
+  it('should return photos in the same order in which they were requested', function(done) {
+    var fixtures = require('./fixtures/10users.json');
+    var ids = fixtures.map(function(x) { return x.SfuId; });
+    var promise = client.getPhoto(ids);
+    var returnedIds = [];
+    return promise.then(function(photos) {
+      photos.forEach(function(photo) {
+        returnedIds.push(photo.SfuId);
+      });
+      ids.should.deep.equal(returnedIds);
+      done();
+    });
+  });
+
+  it('should handle requesting more photos than the maxPhotosPerRequest value', function(done) {
+    var fixtures = require('./fixtures/11users.json');
+    var ids = fixtures.map(function(x) { return x.SfuId; });
+
+    client.getPhoto(ids, function(err, photos) {
+      chai.expect(err).to.not.exist;
+      var returnedIds = [];
+      photos.forEach(function(photo) {
+        returnedIds.push(photo.SfuId);
+      });
+      ids.should.deep.equal(returnedIds);
+      done();
+    });
+  });
+
+  it('should accept a string literal as the id paramter', function(done) {
+    var fixtures = require('./fixtures/1user.json');
+    var ids = fixtures[0].SfuId;
+    return client.getPhoto(ids).should.eventually.be.an('array').
+           and.deep.equal(fixtures).
+           and.notify(done);
+  });
+
+  it('should accept a number literal as the id paramter', function(done) {
+    var fixtures = require('./fixtures/1user.json');
+    var ids = parseInt(fixtures[0].SfuId);
+    return client.getPhoto(ids).should.eventually.be.an('array').
+           and.deep.equal(fixtures).
+           and.notify(done);
+  });
+
+
 });
