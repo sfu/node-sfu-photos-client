@@ -44,8 +44,8 @@ describe('Initialization', function() {
 
 });
 
-describe('#getToken', function() {
-
+describe('#getToken with callbacks', function() {
+  this.timeout(10000);
   var client = new PhotoClient(config);
 
   beforeEach(function(done) {
@@ -63,7 +63,6 @@ describe('#getToken', function() {
 
 });
 
-describe('#getPhoto', function() {
 describe('#getToken with promises', function() {
   this.timeout(10000);
   var client = new PhotoClient(config);
@@ -78,6 +77,9 @@ describe('#getToken with promises', function() {
   });
 
 });
+
+describe('#getPhoto with callbacks', function() {
+  this.timeout(10000);
   var client = new PhotoClient(config);
 
   beforeEach(function(done) {
