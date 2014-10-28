@@ -76,7 +76,7 @@ PhotoClient.prototype.getToken = function(cb) {
 
 PhotoClient.prototype.getPhoto = function(ids, cb) {
   if (!Array.isArray(ids)) {
-    ids.toString().split(',');
+    ids = ids.toString().split(',');
   }
   var photosToFetch = ids.length;
   var self = this;
