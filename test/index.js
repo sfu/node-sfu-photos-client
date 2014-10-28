@@ -64,7 +64,20 @@ describe('#getToken', function() {
 });
 
 describe('#getPhoto', function() {
+describe('#getToken with promises', function() {
+  this.timeout(10000);
+  var client = new PhotoClient(config);
 
+  beforeEach(function(done) {
+    client.cache.flushToken(function() { done(); });
+  });
+
+  it('should return a string and not an error', function(done) {
+    var promise = client.getToken();
+    return promise.should.eventually.be.a('string').and.notify(done);
+  });
+
+});
   var client = new PhotoClient(config);
 
   beforeEach(function(done) {
