@@ -127,7 +127,6 @@ PhotoClient.prototype.getPhoto = function(ids, cb) {
 
   var returnedPhotos = {};
   var idsToFetch = ids.map(function(x) { return x; });
-  var cacheIds = ids.map(function(id) { return self.config.cache.photoPrefix + id; });
 
   function done() {
     var arr = ids.map(function(id) {
@@ -136,7 +135,7 @@ PhotoClient.prototype.getPhoto = function(ids, cb) {
     deferred.resolve(arr);
   }
 
-  self.cache.getPhotos(cacheIds, function(err, results) {
+  self.cache.getPhotos(ids, function(err, results) {
     if (err) {
       // TODO handle error
     } else {
