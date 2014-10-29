@@ -57,7 +57,9 @@ internals.fetchPhotosFromApi = function(ids) {
         deferred.reject(body);
       } else {
         var photoData = JSON.parse(body);
-        deferred.resolve(photoData);
+        self.cache.setPhotos(photoData, function(err, results) {
+          deferred.resolve(photoData);
+        });
       }
     });
   });
