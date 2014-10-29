@@ -48,7 +48,7 @@ describe('#getToken with callbacks', function() {
   var client = new PhotoClient(config);
 
   beforeEach(function(done) {
-    client.cache.flushToken(function() { done(); });
+    client.cache.flushToken().then(function() { done(); });
   });
 
   it('should return a string and not an error', function(done) {
@@ -66,7 +66,7 @@ describe('#getToken with promises', function() {
   var client = new PhotoClient(config);
 
   beforeEach(function(done) {
-    client.cache.flushToken(function() { done(); });
+    client.cache.flushToken().then(function() { done(); });
   });
 
   it('should return a string and not an error', function(done) {
@@ -80,7 +80,7 @@ describe('#getPhoto with callbacks', function() {
   var client = new PhotoClient(config);
 
   beforeEach(function(done) {
-    client.cache.flushPhotos(function() { done(); });
+    client.cache.flushPhotos().then(function() { done(); });
   });
 
   it('it should return a single photo in an array and not an error and match the fixture data', function(done) {
@@ -152,7 +152,7 @@ describe('#getPhoto with promises', function() {
   var client = new PhotoClient(config);
 
   beforeEach(function(done) {
-    client.cache.flushPhotos(function() { done(); });
+    client.cache.flushPhotos().then(function() { done(); });
   });
 
   it('it should return a single photo in an array and not an error and match the fixture data', function(done) {
