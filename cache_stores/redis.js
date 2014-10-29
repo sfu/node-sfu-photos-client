@@ -1,6 +1,6 @@
 var redis = require('redis');
 var extend = require('extend');
-
+var Q = require('q');
 
 function CacheStore(options) {
   var config = {
@@ -28,21 +28,24 @@ function CacheStore(options) {
   this.config = config;
 };
 
-CacheStore.prototype.getPhotos = function(ids, cb) {
+CacheStore.prototype.getPhotos = function(ids) {
+  var deferred = Q.defer();
   var prefix = this.config.photoPrefix;
   var keys = ids.map(function(id) {
     return prefix + id;
   });
   this.client.mget(keys, function(err, result) {
     if (err) {
-      cb(err, null);
+      deferred.reject(err);
     } else {
-      cb(null, result);
+      deferred.resolve(result);
     }
   });
+  return deferred.promise;
 };
 
-CacheStore.prototype.setPhotos = function(photos, cb) {
+CacheStore.prototype.setPhotos = function(photos) {
+  var deferred = Q.defer();
   var multi = this.client.multi();
   var prefix = this.config.photoPrefix;
   var expiry = this.config.photoExpiry;
@@ -51,42 +54,52 @@ CacheStore.prototype.setPhotos = function(photos, cb) {
   });
   multi.exec(function(err, replies) {
     if (err) {
-      cb(err, null);
+      deferred.reject(err);
     } else {
-      cb(null, replies);
+      deferred.resolve(replies);
     }
   });
+  return deferred.promise;
 };
 
-CacheStore.prototype.getToken = function(cb) {
+CacheStore.prototype.getToken = function() {
+  var deferred = Q.defer();
   this.client.get(this.config.tokenKey, function(err, token) {
     if (err) {
-      cb(err, null);
+      deferred.reject(err);
     } else {
-      cb(null, token);
+      deferred.resolve(token);
     }
   });
+  return deferred.promise;
 };
 
-CacheStore.prototype.setToken = function(token, cb) {
+CacheStore.prototype.setToken = function(token) {
+  var deferred = Q.defer();
   this.client.setex(this.config.tokenKey, this.config.tokenExpiry, token, function(err, result) {
-    if (cb) {
-      if (err) {
-        cb(err, null);
-      } else {
-        cb(null, result);
-      }
+    if (err) {
+      deferred.reject(err);
+    } else {
+      deferred.resolve(result);
     }
   });
+  return deferred.promise;
 };
 
-CacheStore.prototype.flushToken = function(cb) {
+CacheStore.prototype.flushToken = function() {
+  var deferred = Q.defer();
   this.client.del(this.config.tokenKey, function(err, result) {
-    cb();
+    if (err) {
+      deferred.reject(err);
+    } else {
+      deferred.resolve(result);
+    }
   });
+  return deferred.promise;
 }
 
-CacheStore.prototype.flushPhotos = function(cb) {
+CacheStore.prototype.flushPhotos = function() {
+  var deferred = Q.defer();
   var self = this;
   this.client.keys(this.config.photoPrefix + '*', function(err, results) {
     var multi = self.client.multi();
@@ -94,15 +107,26 @@ CacheStore.prototype.flushPhotos = function(cb) {
       multi.del(key);
     });
     multi.exec(function(err, responses) {
-      cb();
+      if (err) {
+        deferred.reject(err);
+      } else {
+        deferred.resolve(responses);
+      }
     });
   });
+  return deferred.promise;
 };
 
-CacheStore.prototype.flushAll = function(cb) {
+CacheStore.prototype.flushAll = function() {
+  var deferred = Q.defer();
   this.client.flushall(function(err, response) {
-    cb();
+    if (err) {
+      deferred.reject(err);
+    } else {
+      deferred.resolve(response);
+    }
   });
+  return deferred.promise;
 };
 
 module.exports = CacheStore;
