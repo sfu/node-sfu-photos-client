@@ -29,7 +29,11 @@ function CacheStore(options) {
 };
 
 CacheStore.prototype.getPhotos = function(ids, cb) {
-  this.client.mget(ids, function(err, result) {
+  var prefix = this.config.photoPrefix;
+  var keys = ids.map(function(id) {
+    return prefix + id;
+  });
+  this.client.mget(keys, function(err, result) {
     if (err) {
       cb(err, null);
     } else {
