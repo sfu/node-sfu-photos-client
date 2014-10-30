@@ -12,7 +12,26 @@ Access to the SFU Photos API requires a username and password. Contact Danny Lou
 npm install "git+https://github.com/sfu/node-sfu-photos-client.git"  --save
 ```
 
+## Tests
+
+To run tests: `npm test`
+
+Tests require:
+
+* a ./test/config.json file
+* fixture data:
+  * 1user.json
+  * 2users.json
+  * 10users.json
+  * 11users.json
+
+Fixture data is not checked into the project because it contains personal information. The JSON files are simply the result of calling the API for `x` users (1, 2, 10 or 11).
+
 ## Usage
+
+`node-sfu-photos-client` provides both a node-style (`err, results`) callback interface, as well as a promise interface (using [Q](http://documentup.com/kriskowal/q/)).
+
+### Callback-style interface
 
 ```
 // require the module in your application
@@ -27,19 +46,44 @@ var client = new PhotoClient({
 });
 
 // retrieve the photo for a single SFU ID
-var photo = client.getPhoto("123456789", function(err, photo) {
+client.getPhoto(["123456789"], function(err, photo) {
     console.log(photo);
 });
 
 // retrieve the photos for multiple SFU IDs
-var photos = client.getPhoto(["123456789", "987654321"], function(err, photos) {
+client.getPhoto(["123456789", "987654321"], function(err, photos) {
     console.log(photos);
 });
 ```
 
+### Promise-style interface
+```
+// require the module in your application
+var PhotoClient = require('node-sfu-photos-client');
+
+// create a new instance of the client
+var client = new PhotoClient({
+    username: "photoapiuser",
+    password: "supersecretpassword",
+    endpoint: "https://photos-api-server",
+    maxPhotosPerRequest: 10
+});
+
+// retrieve the photo for a single SFU ID
+client.getPhoto(["123456789"]).then(function(photos) {
+    console.log(photos);
+});
+
+// retrieve the photos for multiple SFU IDs
+client.getPhoto(["123456789", "987654321"]).then(function(photos) {
+    console.log(photos);
+});
+```
+
+
 ## Configuration Options
 
-Client configuration is handled by a config object passed when initializing a new PhotoClient. See `config.json.example` for a sample configuration.
+Client configuration is handled by a configuration object passed when initializing a new PhotoClient. See `config.json.example` for a sample configuration.
 
 ### Required Options
 
@@ -98,39 +142,34 @@ var config = {
 var client = new PhotoClient(config);
 ```
 
+Cache stores return promises (using [Q](http://documentup.com/kriskowal/q/)) from their public APIs.
+
 All schemes must implement the following public APIs:
 
-#### CacheStore#getPhotos(ids, callback)
+#### CacheStore#getPhotos(ids)
 
 Retreive one or more photos from the cache.
 
 * `ids`: an array of SFU IDs
-* `callback`: a function with the signature `function(err, photos)`
 
-#### CacheStore#setPhotos(photos, callback)
+#### CacheStore#setPhotos(photos)
 
 Store one or more photos in the cache.
 
 * `photos`: an array of photo data to cache
-* `callback`: a function with the signature `function(err, result)`
 
 #### CacheStore#getToken(callback)
 
 Retrieve the authentication token from the cache.
 
-* `callback`: a function with the signature `function(err, token)`
-
-#### CacheStore#setToken(token, callback)
+#### CacheStore#setToken(token)
 
 Store the authentication token in the cache.
 
 * `token`: the auth token
-* `callback`: a function with the signature `function(err, result)`
 
-#### CacheStore#flush(callback)
+#### CacheStore#flush()
 
 Remove all entries from the cache
-
-* `callback`: a function with the signature `function(err)`
 
 Refer to `cache_stores/redis.js` for an example.
