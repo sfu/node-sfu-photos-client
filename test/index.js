@@ -5,6 +5,7 @@ var should = chai.should();
 var expect = chai.expect;
 var chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
+var lwip = require('lwip');
 
 var config = require('./config');
 var PhotoClient = require('../index');
@@ -217,5 +218,31 @@ describe('#getPhoto with promises', function() {
            and.notify(done);
   });
 
+});
+
+describe('image resizing', function() {
+  var resizeConfig = require('./config.json');
+  config.maxWidth = 200;
+  var resizingClient = new PhotoClient(resizeConfig);
+  beforeEach(function(done) {
+    resizingClient.cache.flushPhotos().then(function() { done(); });
+  });
+
+  it('should return an image no larger than the maximum width set in config', function(done) {
+    var fixtures = require('./fixtures/1user@200px.json');
+    var ids = fixtures.map(function(x) { return x.SfuId; });
+
+    resizingClient.getPhoto(ids, function(err, photos) {
+      expect(err).to.not.exist;
+      photos.should.be.an('array');
+      var buffer = new Buffer(photos[0].PictureIdentification, 'base64');
+      lwip.open(buffer, 'jpeg', function(err, image) {
+        expect(err).to.not.exist;
+        expect(image).to.exist;
+        expect(image.width()).to.be.at.most(config.maxWidth);
+        done();
+      });
+    });
+  });
 
 });

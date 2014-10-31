@@ -92,6 +92,10 @@ Client configuration is handled by a configuration object passed when initializi
 * `endpoint`: the base URL for the SFU Photos API
 * `maxPhotosPerRequest`: Photos API tokens are limited to a certain number of photos per GET request. This number will be provided to you when you are granted access to the API.
 
+## Image Resizing
+
+Images returned by the API are of variable dimensions. You can pass a `maxWidth` property in the configuration; if present, the images will be scaled down to that width (using the [lwip](https://github.com/EyalAr/lwip) module).
+
 ## Caching
 
 Photos can be cached to help alleviate load on the Photo API server. By default, no caching is performed.
