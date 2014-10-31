@@ -2,6 +2,7 @@
 
 var chai = require('chai');
 var should = chai.should();
+var expect = chai.expect;
 var chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
 
@@ -53,7 +54,7 @@ describe('#getToken with callbacks', function() {
 
   it('should return a string and not an error', function(done) {
     client.getToken(function(err, token) {
-      chai.expect(err).to.not.exist;
+      expect(err).to.not.exist;
       token.should.not.be.empty;
       token.should.be.a('string');
       done();
@@ -64,7 +65,6 @@ describe('#getToken with callbacks', function() {
 
 describe('#getToken with promises', function() {
   var client = new PhotoClient(config);
-
   beforeEach(function(done) {
     client.cache.flushToken().then(function() { done(); });
   });
@@ -83,11 +83,11 @@ describe('#getPhoto with callbacks', function() {
     client.cache.flushPhotos().then(function() { done(); });
   });
 
-  it('it should return a single photo in an array and not an error and match the fixture data', function(done) {
+  it('should return a single photo in an array and not an error and match the fixture data', function(done) {
     var fixtures = require('./fixtures/1user.json');
     var ids = fixtures.map(function(x) { return x.SfuId; });
     client.getPhoto(ids, function(err, photos) {
-      chai.expect(err).to.not.exist;
+      expect(err).to.not.exist;
       photos.should.be.an('array');
       photos.should.deep.equal(fixtures);
       done();
@@ -98,7 +98,7 @@ describe('#getPhoto with callbacks', function() {
     var fixtures = require('./fixtures/10users.json');
     var ids = fixtures.map(function(x) { return x.SfuId; });
     client.getPhoto(ids, function(err, photos) {
-      chai.expect(err).to.not.exist;
+      expect(err).to.not.exist;
       photos.should.be.an('array');
       photos.should.have.length(fixtures.length);
       photos.should.deep.equal(fixtures);
@@ -110,7 +110,7 @@ describe('#getPhoto with callbacks', function() {
     var fixtures = require('./fixtures/10users.json');
     var ids = fixtures.map(function(x) { return x.SfuId; });
     client.getPhoto(ids, function(err, photos) {
-      chai.expect(err).to.not.exist;
+      expect(err).to.not.exist;
       var returnedIds = [];
       photos.forEach(function(photo) {
         returnedIds.push(photo.SfuId);
@@ -125,7 +125,7 @@ describe('#getPhoto with callbacks', function() {
     var ids = fixtures.map(function(x) { return x.SfuId; });
 
     client.getPhoto(ids, function(err, photos) {
-      chai.expect(err).to.not.exist;
+      expect(err).to.not.exist;
       var returnedIds = [];
       photos.forEach(function(photo) {
         returnedIds.push(photo.SfuId);
@@ -139,7 +139,7 @@ describe('#getPhoto with callbacks', function() {
     var fixtures = require('./fixtures/1user.json');
     var ids = parseInt(fixtures[0].SfuId);
     client.getPhoto(ids, function(err, photos) {
-      chai.expect(err).to.not.exist;
+      expect(err).to.not.exist;
       photos.should.be.an('array');
       photos.should.deep.equal(fixtures);
       done();
@@ -155,7 +155,7 @@ describe('#getPhoto with promises', function() {
     client.cache.flushPhotos().then(function() { done(); });
   });
 
-  it('it should return a single photo in an array and not an error and match the fixture data', function(done) {
+  it('should return a single photo in an array and not an error and match the fixture data', function(done) {
     var fixtures = require('./fixtures/1user.json');
     var ids = fixtures.map(function(x) { return x.SfuId; });
     return client.getPhoto(ids).should.eventually.be.an('array').
@@ -191,7 +191,7 @@ describe('#getPhoto with promises', function() {
     var ids = fixtures.map(function(x) { return x.SfuId; });
 
     client.getPhoto(ids, function(err, photos) {
-      chai.expect(err).to.not.exist;
+      expect(err).to.not.exist;
       var returnedIds = [];
       photos.forEach(function(photo) {
         returnedIds.push(photo.SfuId);
