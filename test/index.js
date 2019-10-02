@@ -1,14 +1,16 @@
+/* eslint-disable no-unused-expressions */
+
 'use strict';
 
-var chai = require('chai');
-var should = chai.should();
-var expect = chai.expect;
-var nock = require('nock');
-var chaiAsPromised = require('chai-as-promised');
+const chai = require('chai');
+const should = chai.should(); // eslint-disable-line
+const expect = chai.expect;
+const nock = require('nock');
+const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
-var lwip = require('lwip');
+// const lwip = require('lwip');
 
-var config = {
+const config = {
   username: 'username',
   password: 'password',
   endpoint: 'https://photos-api',
@@ -18,7 +20,7 @@ var config = {
   },
 };
 
-var PhotoClient = require('../index');
+const PhotoClient = require('../index');
 
 describe('Initialization', function() {
   it('should throw an error if no API endpoint passed in config', function(done) {
@@ -57,7 +59,7 @@ describe('Initialization', function() {
   });
 
   it('should throw an error if an invalid cache store is specified in config', function(done) {
-    var opts = JSON.parse(JSON.stringify(config));
+    const opts = JSON.parse(JSON.stringify(config));
     opts.cache.store = 'invalid';
     (function() {
       return new PhotoClient(opts);
@@ -74,7 +76,7 @@ describe('Initialization', function() {
 });
 
 describe('#getToken with callbacks', function() {
-  var client;
+  let client;
 
   beforeEach(function(done) {
     nock.disableNetConnect();
@@ -103,7 +105,7 @@ describe('#getToken with callbacks', function() {
 });
 
 describe('#getToken with promises', function() {
-  var client;
+  let client;
   beforeEach(function(done) {
     client = new PhotoClient(config);
     nock.disableNetConnect();
@@ -121,13 +123,13 @@ describe('#getToken with promises', function() {
   });
 
   it('should return a string and not an error', function(done) {
-    var promise = client.getToken();
+    const promise = client.getToken();
     return promise.should.eventually.be.a('string').and.notify(done);
   });
 });
 
 describe('#getPhoto with callbacks', function() {
-  var client;
+  let client;
 
   beforeEach(function(done) {
     client = new PhotoClient(config);
@@ -146,11 +148,11 @@ describe('#getPhoto with callbacks', function() {
   });
 
   it('should return a single photo in an array and not an error and match the fixture data', function(done) {
-    var fixtures = require('./fixtures/1user.json');
+    const fixtures = require('./fixtures/1user.json');
     nock(config.endpoint)
       .get(/\/Values\/\d{9}$/)
       .reply(200, fixtures);
-    var ids = fixtures.map(function(x) {
+    const ids = fixtures.map(function(x) {
       return x.SfuId;
     });
     client.getPhoto(ids, function(err, photos) {
@@ -162,11 +164,11 @@ describe('#getPhoto with callbacks', function() {
   });
 
   it('should return multiple photos in an array of the same length as the fixture data and not an error and match the fixture data', function(done) {
-    var fixtures = require('./fixtures/10users.json');
+    const fixtures = require('./fixtures/10users.json');
     nock(config.endpoint)
       .get(/\/Values\/(\d{9},?){10}$/)
       .reply(200, fixtures);
-    var ids = fixtures.map(function(x) {
+    const ids = fixtures.map(function(x) {
       return x.SfuId;
     });
     client.getPhoto(ids, function(err, photos) {
@@ -179,16 +181,16 @@ describe('#getPhoto with callbacks', function() {
   });
 
   it('should return photos in the same order in which they were requested', function(done) {
-    var fixtures = require('./fixtures/10users.json');
+    const fixtures = require('./fixtures/10users.json');
     nock(config.endpoint)
       .get(/\/Values\/(\d{9},?){10}$/)
       .reply(200, fixtures);
-    var ids = fixtures.map(function(x) {
+    const ids = fixtures.map(function(x) {
       return x.SfuId;
     });
     client.getPhoto(ids, function(err, photos) {
       expect(err).to.not.exist;
-      var returnedIds = [];
+      const returnedIds = [];
       photos.forEach(function(photo) {
         returnedIds.push(photo.SfuId);
       });
@@ -198,7 +200,7 @@ describe('#getPhoto with callbacks', function() {
   });
 
   it('should handle requesting more photos than the maxPhotosPerRequest value', function(done) {
-    var fixtures = require('./fixtures/11users.json');
+    const fixtures = require('./fixtures/11users.json');
     nock(config.endpoint)
       .post('/Account/Token')
       .reply(200, '{"AccountName":"username","ServiceToken":"xxxx"}');
@@ -208,13 +210,13 @@ describe('#getPhoto with callbacks', function() {
     nock(config.endpoint)
       .get(/\/Values\/(\d{9},?)$/)
       .reply(200, fixtures);
-    var ids = fixtures.map(function(x) {
+    const ids = fixtures.map(function(x) {
       return x.SfuId;
     });
 
     client.getPhoto(ids, function(err, photos) {
       expect(err).to.not.exist;
-      var returnedIds = [];
+      const returnedIds = [];
       photos.forEach(function(photo) {
         returnedIds.push(photo.SfuId);
       });
@@ -224,11 +226,11 @@ describe('#getPhoto with callbacks', function() {
   });
 
   it('should accept a number literal as the id paramter', function(done) {
-    var fixtures = require('./fixtures/1user.json');
+    const fixtures = require('./fixtures/1user.json');
     nock(config.endpoint)
       .get(/\/Values\/\d{9}$/)
       .reply(200, fixtures);
-    var ids = parseInt(fixtures[0].SfuId);
+    const ids = parseInt(fixtures[0].SfuId);
     client.getPhoto(ids, function(err, photos) {
       expect(err).to.not.exist;
       photos.should.be.an('array');
@@ -239,7 +241,7 @@ describe('#getPhoto with callbacks', function() {
 });
 
 describe('#getPhoto with promises', function() {
-  var client;
+  let client;
 
   beforeEach(function(done) {
     client = new PhotoClient(config);
@@ -258,11 +260,11 @@ describe('#getPhoto with promises', function() {
   });
 
   it('should return a single photo in an array and not an error and match the fixture data', function(done) {
-    var fixtures = require('./fixtures/1user.json');
+    const fixtures = require('./fixtures/1user.json');
     nock(config.endpoint)
       .get(/\/Values\/\d{9}$/)
       .reply(200, fixtures);
-    var ids = fixtures.map(function(x) {
+    const ids = fixtures.map(function(x) {
       return x.SfuId;
     });
     return client
@@ -273,11 +275,11 @@ describe('#getPhoto with promises', function() {
   });
 
   it('should return multiple photos in an array of the same length as the fixture data and not an error and match the fixture data', function(done) {
-    var fixtures = require('./fixtures/10users.json');
+    const fixtures = require('./fixtures/10users.json');
     nock(config.endpoint)
       .get(/\/Values\/(\d{9},?){10}$/)
       .reply(200, fixtures);
-    var ids = fixtures.map(function(x) {
+    const ids = fixtures.map(function(x) {
       return x.SfuId;
     });
     return client
@@ -289,15 +291,15 @@ describe('#getPhoto with promises', function() {
   });
 
   it('should return photos in the same order in which they were requested', function(done) {
-    var fixtures = require('./fixtures/10users.json');
+    const fixtures = require('./fixtures/10users.json');
     nock(config.endpoint)
       .get(/\/Values\/(\d{9},?){10}$/)
       .reply(200, fixtures);
-    var ids = fixtures.map(function(x) {
+    const ids = fixtures.map(function(x) {
       return x.SfuId;
     });
-    var promise = client.getPhoto(ids);
-    var returnedIds = [];
+    const promise = client.getPhoto(ids);
+    const returnedIds = [];
     return promise.then(function(photos) {
       photos.forEach(function(photo) {
         returnedIds.push(photo.SfuId);
@@ -308,8 +310,8 @@ describe('#getPhoto with promises', function() {
   });
 
   it('should handle requesting more photos than the maxPhotosPerRequest value', function(done) {
-    var fixtures = require('./fixtures/11users.json');
-    var ids = fixtures.map(function(x) {
+    const fixtures = require('./fixtures/11users.json');
+    const ids = fixtures.map(function(x) {
       return x.SfuId;
     });
     nock(config.endpoint)
@@ -324,7 +326,7 @@ describe('#getPhoto with promises', function() {
 
     client.getPhoto(ids, function(err, photos) {
       expect(err).to.not.exist;
-      var returnedIds = [];
+      const returnedIds = [];
       photos.forEach(function(photo) {
         returnedIds.push(photo.SfuId);
       });
@@ -334,11 +336,11 @@ describe('#getPhoto with promises', function() {
   });
 
   it('should accept a string literal as the id paramter', function(done) {
-    var fixtures = require('./fixtures/1user.json');
+    const fixtures = require('./fixtures/1user.json');
     nock(config.endpoint)
       .get(/\/Values\/\d{9}$/)
       .reply(200, fixtures);
-    var ids = fixtures[0].SfuId;
+    const ids = fixtures[0].SfuId;
     return client
       .getPhoto(ids)
       .should.eventually.be.an('array')
@@ -347,11 +349,11 @@ describe('#getPhoto with promises', function() {
   });
 
   it('should accept a number literal as the id paramter', function(done) {
-    var fixtures = require('./fixtures/1user.json');
+    const fixtures = require('./fixtures/1user.json');
     nock(config.endpoint)
       .get(/\/Values\/\d{9}$/)
       .reply(200, fixtures);
-    var ids = parseInt(fixtures[0].SfuId);
+    const ids = parseInt(fixtures[0].SfuId);
     return client
       .getPhoto(ids)
       .should.eventually.be.an('array')
