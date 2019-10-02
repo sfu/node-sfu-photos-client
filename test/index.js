@@ -22,22 +22,25 @@ const config = {
 
 const PhotoClient = require('../index');
 
-describe('Initialization', function() {
-  it('should throw an error if no API endpoint passed in config', function(done) {
-    (function() {
-      return new PhotoClient({ endpoint: null });
-    }.should.Throw());
-    done();
-  });
+describe('Initialization', () => {
+  test(
+    'should throw an error if no API endpoint passed in config',
+    done => {
+      (function() {
+        return new PhotoClient({ endpoint: null });
+      }.should.Throw());
+      done();
+    }
+  );
 
-  it('should throw an error if no username passed in config', function(done) {
+  test('should throw an error if no username passed in config', done => {
     (function() {
       return new PhotoClient({ endpoint: 'http://photos-api', username: null });
     }.should.Throw());
     done();
   });
 
-  it('should throw an error if no password passed in config', function(done) {
+  test('should throw an error if no password passed in config', done => {
     (function() {
       return new PhotoClient({
         endpoint: 'http://photos-api',
@@ -47,38 +50,47 @@ describe('Initialization', function() {
     done();
   });
 
-  it('should throw an error if no maxPhotosPerRequest passed in config', function(done) {
-    (function() {
-      return new PhotoClient({
-        endpoint: 'http://photos-api',
-        username: 'test',
-        password: 'password',
-      });
-    }.should.Throw());
-    done();
-  });
+  test(
+    'should throw an error if no maxPhotosPerRequest passed in config',
+    done => {
+      (function() {
+        return new PhotoClient({
+          endpoint: 'http://photos-api',
+          username: 'test',
+          password: 'password',
+        });
+      }.should.Throw());
+      done();
+    }
+  );
 
-  it('should throw an error if an invalid cache store is specified in config', function(done) {
-    const opts = JSON.parse(JSON.stringify(config));
-    opts.cache.store = 'invalid';
-    (function() {
-      return new PhotoClient(opts);
-    }.should.Throw());
-    done();
-  });
+  test(
+    'should throw an error if an invalid cache store is specified in config',
+    done => {
+      const opts = JSON.parse(JSON.stringify(config));
+      opts.cache.store = 'invalid';
+      (function() {
+        return new PhotoClient(opts);
+      }.should.Throw());
+      done();
+    }
+  );
 
-  it('should not throw an error if both username and password passed in config', function(done) {
-    (function() {
-      return new PhotoClient(config);
-    }.should.not.Throw());
-    done();
-  });
+  test(
+    'should not throw an error if both username and password passed in config',
+    done => {
+      (function() {
+        return new PhotoClient(config);
+      }.should.not.Throw());
+      done();
+    }
+  );
 });
 
-describe('#getToken with callbacks', function() {
+describe('#getToken with callbacks', () => {
   let client;
 
-  beforeEach(function(done) {
+  beforeEach(done => {
     nock.disableNetConnect();
     nock(config.endpoint)
       .post('/Account/Token')
@@ -89,12 +101,12 @@ describe('#getToken with callbacks', function() {
     });
   });
 
-  afterEach(function() {
+  afterEach(() => {
     client = undefined;
     nock.cleanAll();
   });
 
-  it('should return a string and not an error', function(done) {
+  test('should return a string and not an error', done => {
     client.getToken(function(err, token) {
       expect(err).to.not.exist;
       token.should.not.be.empty;
@@ -104,9 +116,9 @@ describe('#getToken with callbacks', function() {
   });
 });
 
-describe('#getToken with promises', function() {
+describe('#getToken with promises', () => {
   let client;
-  beforeEach(function(done) {
+  beforeEach(done => {
     client = new PhotoClient(config);
     nock.disableNetConnect();
     nock(config.endpoint)
@@ -117,21 +129,21 @@ describe('#getToken with promises', function() {
     });
   });
 
-  afterEach(function() {
+  afterEach(() => {
     client = undefined;
     nock.cleanAll();
   });
 
-  it('should return a string and not an error', function(done) {
+  test('should return a string and not an error', done => {
     const promise = client.getToken();
     return promise.should.eventually.be.a('string').and.notify(done);
   });
 });
 
-describe('#getPhoto with callbacks', function() {
+describe('#getPhoto with callbacks', () => {
   let client;
 
-  beforeEach(function(done) {
+  beforeEach(done => {
     client = new PhotoClient(config);
     nock.disableNetConnect();
     nock(config.endpoint)
@@ -142,90 +154,102 @@ describe('#getPhoto with callbacks', function() {
     });
   });
 
-  afterEach(function() {
+  afterEach(() => {
     client = undefined;
     nock.cleanAll();
   });
 
-  it('should return a single photo in an array and not an error and match the fixture data', function(done) {
-    const fixtures = require('./fixtures/1user.json');
-    nock(config.endpoint)
-      .get(/\/Values\/\d{9}$/)
-      .reply(200, fixtures);
-    const ids = fixtures.map(function(x) {
-      return x.SfuId;
-    });
-    client.getPhoto(ids, function(err, photos) {
-      expect(err).to.not.exist;
-      photos.should.be.an('array');
-      photos.should.deep.equal(fixtures);
-      done();
-    });
-  });
-
-  it('should return multiple photos in an array of the same length as the fixture data and not an error and match the fixture data', function(done) {
-    const fixtures = require('./fixtures/10users.json');
-    nock(config.endpoint)
-      .get(/\/Values\/(\d{9},?){10}$/)
-      .reply(200, fixtures);
-    const ids = fixtures.map(function(x) {
-      return x.SfuId;
-    });
-    client.getPhoto(ids, function(err, photos) {
-      expect(err).to.not.exist;
-      photos.should.be.an('array');
-      photos.should.have.length(fixtures.length);
-      photos.should.deep.equal(fixtures);
-      done();
-    });
-  });
-
-  it('should return photos in the same order in which they were requested', function(done) {
-    const fixtures = require('./fixtures/10users.json');
-    nock(config.endpoint)
-      .get(/\/Values\/(\d{9},?){10}$/)
-      .reply(200, fixtures);
-    const ids = fixtures.map(function(x) {
-      return x.SfuId;
-    });
-    client.getPhoto(ids, function(err, photos) {
-      expect(err).to.not.exist;
-      const returnedIds = [];
-      photos.forEach(function(photo) {
-        returnedIds.push(photo.SfuId);
+  test(
+    'should return a single photo in an array and not an error and match the fixture data',
+    done => {
+      const fixtures = require('./fixtures/1user.json');
+      nock(config.endpoint)
+        .get(/\/Values\/\d{9}$/)
+        .reply(200, fixtures);
+      const ids = fixtures.map(function(x) {
+        return x.SfuId;
       });
-      ids.should.deep.equal(returnedIds);
-      done();
-    });
-  });
-
-  it('should handle requesting more photos than the maxPhotosPerRequest value', function(done) {
-    const fixtures = require('./fixtures/11users.json');
-    nock(config.endpoint)
-      .post('/Account/Token')
-      .reply(200, '{"AccountName":"username","ServiceToken":"xxxx"}');
-    nock(config.endpoint)
-      .get(/\/Values\/(\d{9},?){10}$/)
-      .reply(200, fixtures);
-    nock(config.endpoint)
-      .get(/\/Values\/(\d{9},?)$/)
-      .reply(200, fixtures);
-    const ids = fixtures.map(function(x) {
-      return x.SfuId;
-    });
-
-    client.getPhoto(ids, function(err, photos) {
-      expect(err).to.not.exist;
-      const returnedIds = [];
-      photos.forEach(function(photo) {
-        returnedIds.push(photo.SfuId);
+      client.getPhoto(ids, function(err, photos) {
+        expect(err).to.not.exist;
+        photos.should.be.an('array');
+        photos.should.deep.equal(fixtures);
+        done();
       });
-      ids.should.deep.equal(returnedIds);
-      done();
-    });
-  });
+    }
+  );
 
-  it('should accept a number literal as the id paramter', function(done) {
+  test(
+    'should return multiple photos in an array of the same length as the fixture data and not an error and match the fixture data',
+    done => {
+      const fixtures = require('./fixtures/10users.json');
+      nock(config.endpoint)
+        .get(/\/Values\/(\d{9},?){10}$/)
+        .reply(200, fixtures);
+      const ids = fixtures.map(function(x) {
+        return x.SfuId;
+      });
+      client.getPhoto(ids, function(err, photos) {
+        expect(err).to.not.exist;
+        photos.should.be.an('array');
+        photos.should.have.length(fixtures.length);
+        photos.should.deep.equal(fixtures);
+        done();
+      });
+    }
+  );
+
+  test(
+    'should return photos in the same order in which they were requested',
+    done => {
+      const fixtures = require('./fixtures/10users.json');
+      nock(config.endpoint)
+        .get(/\/Values\/(\d{9},?){10}$/)
+        .reply(200, fixtures);
+      const ids = fixtures.map(function(x) {
+        return x.SfuId;
+      });
+      client.getPhoto(ids, function(err, photos) {
+        expect(err).to.not.exist;
+        const returnedIds = [];
+        photos.forEach(function(photo) {
+          returnedIds.push(photo.SfuId);
+        });
+        ids.should.deep.equal(returnedIds);
+        done();
+      });
+    }
+  );
+
+  test(
+    'should handle requesting more photos than the maxPhotosPerRequest value',
+    done => {
+      const fixtures = require('./fixtures/11users.json');
+      nock(config.endpoint)
+        .post('/Account/Token')
+        .reply(200, '{"AccountName":"username","ServiceToken":"xxxx"}');
+      nock(config.endpoint)
+        .get(/\/Values\/(\d{9},?){10}$/)
+        .reply(200, fixtures);
+      nock(config.endpoint)
+        .get(/\/Values\/(\d{9},?)$/)
+        .reply(200, fixtures);
+      const ids = fixtures.map(function(x) {
+        return x.SfuId;
+      });
+
+      client.getPhoto(ids, function(err, photos) {
+        expect(err).to.not.exist;
+        const returnedIds = [];
+        photos.forEach(function(photo) {
+          returnedIds.push(photo.SfuId);
+        });
+        ids.should.deep.equal(returnedIds);
+        done();
+      });
+    }
+  );
+
+  test('should accept a number literal as the id paramter', done => {
     const fixtures = require('./fixtures/1user.json');
     nock(config.endpoint)
       .get(/\/Values\/\d{9}$/)
@@ -240,10 +264,10 @@ describe('#getPhoto with callbacks', function() {
   });
 });
 
-describe('#getPhoto with promises', function() {
+describe('#getPhoto with promises', () => {
   let client;
 
-  beforeEach(function(done) {
+  beforeEach(done => {
     client = new PhotoClient(config);
     client.cache.flushPhotos().then(function() {
       done();
@@ -254,88 +278,100 @@ describe('#getPhoto with promises', function() {
       .reply(200, '{"AccountName":"username","ServiceToken":"xxxx"}');
   });
 
-  afterEach(function() {
+  afterEach(() => {
     client = undefined;
     nock.cleanAll();
   });
 
-  it('should return a single photo in an array and not an error and match the fixture data', function(done) {
-    const fixtures = require('./fixtures/1user.json');
-    nock(config.endpoint)
-      .get(/\/Values\/\d{9}$/)
-      .reply(200, fixtures);
-    const ids = fixtures.map(function(x) {
-      return x.SfuId;
-    });
-    return client
-      .getPhoto(ids)
-      .should.eventually.be.an('array')
-      .and.deep.equal(fixtures)
-      .and.notify(done);
-  });
-
-  it('should return multiple photos in an array of the same length as the fixture data and not an error and match the fixture data', function(done) {
-    const fixtures = require('./fixtures/10users.json');
-    nock(config.endpoint)
-      .get(/\/Values\/(\d{9},?){10}$/)
-      .reply(200, fixtures);
-    const ids = fixtures.map(function(x) {
-      return x.SfuId;
-    });
-    return client
-      .getPhoto(ids)
-      .should.eventually.be.an('array')
-      .and.have.length(fixtures.length)
-      .and.deep.equal(fixtures)
-      .and.notify(done);
-  });
-
-  it('should return photos in the same order in which they were requested', function(done) {
-    const fixtures = require('./fixtures/10users.json');
-    nock(config.endpoint)
-      .get(/\/Values\/(\d{9},?){10}$/)
-      .reply(200, fixtures);
-    const ids = fixtures.map(function(x) {
-      return x.SfuId;
-    });
-    const promise = client.getPhoto(ids);
-    const returnedIds = [];
-    return promise.then(function(photos) {
-      photos.forEach(function(photo) {
-        returnedIds.push(photo.SfuId);
+  test(
+    'should return a single photo in an array and not an error and match the fixture data',
+    done => {
+      const fixtures = require('./fixtures/1user.json');
+      nock(config.endpoint)
+        .get(/\/Values\/\d{9}$/)
+        .reply(200, fixtures);
+      const ids = fixtures.map(function(x) {
+        return x.SfuId;
       });
-      ids.should.deep.equal(returnedIds);
-      done();
-    });
-  });
+      return client
+        .getPhoto(ids)
+        .should.eventually.be.an('array')
+        .and.deep.equal(fixtures)
+        .and.notify(done);
+    }
+  );
 
-  it('should handle requesting more photos than the maxPhotosPerRequest value', function(done) {
-    const fixtures = require('./fixtures/11users.json');
-    const ids = fixtures.map(function(x) {
-      return x.SfuId;
-    });
-    nock(config.endpoint)
-      .post('/Account/Token')
-      .reply(200, '{"AccountName":"username","ServiceToken":"xxxx"}');
-    nock(config.endpoint)
-      .get(/\/Values\/(\d{9},?){10}$/)
-      .reply(200, fixtures);
-    nock(config.endpoint)
-      .get(/\/Values\/(\d{9},?)$/)
-      .reply(200, fixtures);
+  test(
+    'should return multiple photos in an array of the same length as the fixture data and not an error and match the fixture data',
+    done => {
+      const fixtures = require('./fixtures/10users.json');
+      nock(config.endpoint)
+        .get(/\/Values\/(\d{9},?){10}$/)
+        .reply(200, fixtures);
+      const ids = fixtures.map(function(x) {
+        return x.SfuId;
+      });
+      return client
+        .getPhoto(ids)
+        .should.eventually.be.an('array')
+        .and.have.length(fixtures.length)
+        .and.deep.equal(fixtures)
+        .and.notify(done);
+    }
+  );
 
-    client.getPhoto(ids, function(err, photos) {
-      expect(err).to.not.exist;
+  test(
+    'should return photos in the same order in which they were requested',
+    done => {
+      const fixtures = require('./fixtures/10users.json');
+      nock(config.endpoint)
+        .get(/\/Values\/(\d{9},?){10}$/)
+        .reply(200, fixtures);
+      const ids = fixtures.map(function(x) {
+        return x.SfuId;
+      });
+      const promise = client.getPhoto(ids);
       const returnedIds = [];
-      photos.forEach(function(photo) {
-        returnedIds.push(photo.SfuId);
+      return promise.then(function(photos) {
+        photos.forEach(function(photo) {
+          returnedIds.push(photo.SfuId);
+        });
+        ids.should.deep.equal(returnedIds);
+        done();
       });
-      ids.should.deep.equal(returnedIds);
-      done();
-    });
-  });
+    }
+  );
 
-  it('should accept a string literal as the id paramter', function(done) {
+  test(
+    'should handle requesting more photos than the maxPhotosPerRequest value',
+    done => {
+      const fixtures = require('./fixtures/11users.json');
+      const ids = fixtures.map(function(x) {
+        return x.SfuId;
+      });
+      nock(config.endpoint)
+        .post('/Account/Token')
+        .reply(200, '{"AccountName":"username","ServiceToken":"xxxx"}');
+      nock(config.endpoint)
+        .get(/\/Values\/(\d{9},?){10}$/)
+        .reply(200, fixtures);
+      nock(config.endpoint)
+        .get(/\/Values\/(\d{9},?)$/)
+        .reply(200, fixtures);
+
+      client.getPhoto(ids, function(err, photos) {
+        expect(err).to.not.exist;
+        const returnedIds = [];
+        photos.forEach(function(photo) {
+          returnedIds.push(photo.SfuId);
+        });
+        ids.should.deep.equal(returnedIds);
+        done();
+      });
+    }
+  );
+
+  test('should accept a string literal as the id paramter', done => {
     const fixtures = require('./fixtures/1user.json');
     nock(config.endpoint)
       .get(/\/Values\/\d{9}$/)
@@ -348,7 +384,7 @@ describe('#getPhoto with promises', function() {
       .and.notify(done);
   });
 
-  it('should accept a number literal as the id paramter', function(done) {
+  test('should accept a number literal as the id paramter', done => {
     const fixtures = require('./fixtures/1user.json');
     nock(config.endpoint)
       .get(/\/Values\/\d{9}$/)
@@ -362,11 +398,11 @@ describe('#getPhoto with promises', function() {
   });
 });
 
-describe('image resizing', function() {
+describe('image resizing', () => {
   config.maxWidth = 200;
   var resizingClient;
 
-  beforeEach(function(done) {
+  beforeEach(done => {
     nock.disableNetConnect();
     nock(config.endpoint)
       .post('/Account/Token')
@@ -377,29 +413,32 @@ describe('image resizing', function() {
     });
   });
 
-  afterEach(function() {
+  afterEach(() => {
     resizingClient = undefined;
     nock.cleanAll();
   });
 
-  it('should return an image no larger than the maximum width set in config', function(done) {
-    var fixtures = require('./fixtures/1user@200px.json');
-    nock(config.endpoint)
-      .get(/\/Values\/\d{9}$/)
-      .reply(200, fixtures);
-    var ids = fixtures.map(function(x) {
-      return x.SfuId;
-    });
-    resizingClient.getPhoto(ids, function(err, photos) {
-      expect(err).to.not.exist;
-      photos.should.be.an('array');
-      var buffer = new Buffer(photos[0].PictureIdentification, 'base64');
-      lwip.open(buffer, 'jpeg', function(err, image) {
-        expect(err).to.not.exist;
-        expect(image).to.exist;
-        expect(image.width()).to.be.at.most(config.maxWidth);
-        done();
+  test(
+    'should return an image no larger than the maximum width set in config',
+    done => {
+      var fixtures = require('./fixtures/1user@200px.json');
+      nock(config.endpoint)
+        .get(/\/Values\/\d{9}$/)
+        .reply(200, fixtures);
+      var ids = fixtures.map(function(x) {
+        return x.SfuId;
       });
-    });
-  });
+      resizingClient.getPhoto(ids, function(err, photos) {
+        expect(err).to.not.exist;
+        photos.should.be.an('array');
+        var buffer = new Buffer(photos[0].PictureIdentification, 'base64');
+        lwip.open(buffer, 'jpeg', function(err, image) {
+          expect(err).to.not.exist;
+          expect(image).to.exist;
+          expect(image.width()).to.be.at.most(config.maxWidth);
+          done();
+        });
+      });
+    }
+  );
 });
