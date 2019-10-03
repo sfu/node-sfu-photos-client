@@ -1,47 +1,45 @@
-var Q = require('q');
-
 function CacheStore(options) {}
 
 CacheStore.prototype.getPhotos = function(ids) {
-    var deferred = Q.defer();
-    deferred.resolve(ids.map(function(id) { return null; }));
-    return deferred.promise;
+  return ids.map(function(id) {
+    return null;
+  });
 };
 
 CacheStore.prototype.setPhotos = function(photos) {
-    var deferred = Q.defer();
-    deferred.resolve(null);
-    return deferred.promise;
+  return new Promise((resolve, reject) => {
+    resolve(null);
+  });
 };
 
 CacheStore.prototype.getToken = function() {
-    var deferred = Q.defer();
-    deferred.resolve(null);
-    return deferred.promise;
+  return new Promise((resolve, reject) => {
+    resolve(null);
+  });
 };
 
 CacheStore.prototype.setToken = function(token) {
-    var deferred = Q.defer();
-    deferred.resolve();
-    return deferred.promise;
+  return new Promise((resolve, reject) => {
+    resolve(null);
+  });
 };
 
 CacheStore.prototype.flushToken = function() {
-    var deferred = Q.defer();
-    deferred.resolve(null);
-    return deferred.promise;
+  return new Promise((resolve, reject) => {
+    resolve(null);
+  });
 };
 
 CacheStore.prototype.flushPhotos = function() {
-    var deferred = Q.defer();
-    deferred.resolve(null);
-    return deferred.promise;
+  return new Promise((resolve, reject) => {
+    resolve(null);
+  });
 };
 
 CacheStore.prototype.flushAll = function() {
-    var deferred = Q.defer();
-    deferred.resolve(null);
-    return deferred.promise;
+  return new Promise((resolve, reject) => {
+    resolve(null);
+  });
 };
 
 module.exports = CacheStore;

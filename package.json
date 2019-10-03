@@ -25,10 +25,11 @@
     "prettier": "^1.18.2"
   },
   "dependencies": {
-    "extend": "^3.0.0",
-    "q": "^1.0.1",
+    "extend": "^3.0.2",
+    "jimp": "^0.8.4",
     "redis": "^2.6.0-1",
-    "request": "^2.45.0"
+    "request": "^2.45.0",
+    "request-promise-native": "^1.0.7"
   },
   "prettier": {
     "singleQuote": true,

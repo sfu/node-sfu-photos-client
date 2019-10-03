@@ -1,9 +1,7 @@
 {
   "extends": "unobtrusive",
   "parserOptions": {
-    "ecmaFeatures": {
-      "experimentalObjectRestSpread": true
-    }
+    "ecmaVersion": 9
   },
   "env": {
     "es6": true,

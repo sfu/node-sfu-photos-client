@@ -1,23 +1,26 @@
-var redis = require('redis');
-var extend = require('extend');
-var Q = require('q');
+const redis = require('redis');
+const extend = require('extend');
 
 function CacheStore(options) {
-  var config = {
-    redisHost: "localhost",
+  const config = {
+    redisHost: 'localhost',
     redisPort: 6379,
     redisDatabase: 0,
     redisOptions: {
-      detect_buffers: true
+      detect_buffers: true,
     },
     photoExpiry: 3600,
     tokenExpiry: 86400,
     photoPrefix: 'photo:',
-    tokenKey: 'token'
+    tokenKey: 'token',
   };
   extend(config, options);
 
-  var client = redis.createClient(config.redisPort, config.redisHost, config.redisOptions);
+  const client = redis.createClient(
+    config.redisPort,
+    config.redisHost,
+    config.redisOptions
+  );
   if (config.password) {
     client.auth(config.password);
   }
@@ -26,107 +29,111 @@ function CacheStore(options) {
   }
   this.client = client;
   this.config = config;
-};
-
-CacheStore.prototype.getPhotos = function(ids) {
-  var deferred = Q.defer();
-  var prefix = this.config.photoPrefix;
-  var keys = ids.map(function(id) {
-    return prefix + id;
-  });
-  this.client.mget(keys, function(err, result) {
-    if (err) {
-      deferred.reject(err);
-    } else {
-      deferred.resolve(result);
-    }
-  });
-  return deferred.promise;
-};
-
-CacheStore.prototype.setPhotos = function(photos) {
-  var deferred = Q.defer();
-  var multi = this.client.multi();
-  var prefix = this.config.photoPrefix;
-  var expiry = this.config.photoExpiry;
-  photos.forEach(function(photo) {
-    multi.setex(prefix + photo.SfuId, expiry, JSON.stringify(photo));
-  });
-  multi.exec(function(err, replies) {
-    if (err) {
-      deferred.reject(err);
-    } else {
-      deferred.resolve(replies);
-    }
-  });
-  return deferred.promise;
-};
-
-CacheStore.prototype.getToken = function() {
-  var deferred = Q.defer();
-  this.client.get(this.config.tokenKey, function(err, token) {
-    if (err) {
-      deferred.reject(err);
-    } else {
-      deferred.resolve(token);
-    }
-  });
-  return deferred.promise;
-};
-
-CacheStore.prototype.setToken = function(token) {
-  var deferred = Q.defer();
-  this.client.setex(this.config.tokenKey, this.config.tokenExpiry, token, function(err, result) {
-    if (err) {
-      deferred.reject(err);
-    } else {
-      deferred.resolve(result);
-    }
-  });
-  return deferred.promise;
-};
-
-CacheStore.prototype.flushToken = function() {
-  var deferred = Q.defer();
-  this.client.del(this.config.tokenKey, function(err, result) {
-    if (err) {
-      deferred.reject(err);
-    } else {
-      deferred.resolve(result);
-    }
-  });
-  return deferred.promise;
 }
 
-CacheStore.prototype.flushPhotos = function() {
-  var deferred = Q.defer();
-  var self = this;
-  this.client.keys(this.config.photoPrefix + '*', function(err, results) {
-    var multi = self.client.multi();
-    results.forEach(function(key) {
-      multi.del(key);
-    });
-    multi.exec(function(err, responses) {
+CacheStore.prototype.getPhotos = function(ids) {
+  const prefix = this.config.photoPrefix;
+  const keys = ids.map(function(id) {
+    return prefix + id;
+  });
+  return new Promise((resolve, reject) => {
+    this.client.mget(keys, function(err, result) {
       if (err) {
-        deferred.reject(err);
+        reject(err);
       } else {
-        deferred.resolve(responses);
+        resolve(result);
       }
     });
   });
-  return deferred.promise;
+};
+
+CacheStore.prototype.setPhotos = function(photos) {
+  const multi = this.client.multi();
+  const prefix = this.config.photoPrefix;
+  const expiry = this.config.photoExpiry;
+  photos.forEach(function(photo) {
+    multi.setex(prefix + photo.SfuId, expiry, JSON.stringify(photo));
+  });
+  return new Promise((resolve, reject) => {
+    multi.exec(function(err, replies) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(replies);
+      }
+    });
+  });
+};
+
+CacheStore.prototype.getToken = function() {
+  return new Promise((resolve, reject) => {
+    this.client.get(this.config.tokenKey, function(err, token) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(token);
+      }
+    });
+  });
+};
+
+CacheStore.prototype.setToken = function(token) {
+  return new Promise((resolve, reject) => {
+    this.client.setex(
+      this.config.tokenKey,
+      this.config.tokenExpiry,
+      token,
+      function(err, result) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(result);
+        }
+      }
+    );
+  });
+};
+
+CacheStore.prototype.flushToken = function() {
+  return new Promise((resolve, reject) => {
+    this.client.del(this.config.tokenKey, function(err, result) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
+
+CacheStore.prototype.flushPhotos = function() {
+  return new Promise((resolve, reject) => {
+    this.client.keys(this.config.photoPrefix + '*', function(err, results) {
+      const multi = this.client.multi();
+      results.forEach(function(key) {
+        multi.del(key);
+      });
+      multi.exec(function(err, responses) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(responses);
+        }
+      });
+    });
+  });
 };
 
 CacheStore.prototype.flushAll = function() {
-  var deferred = Q.defer();
-  this.client.flushall(function(err, response) {
-    if (err) {
-      deferred.reject(err);
-    } else {
-      deferred.resolve(response);
-    }
+  return new Promise((resolve, reject) => {
+    this.client.flushall(function(err, response) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(response);
+      }
+    });
   });
-  return deferred.promise;
 };
 
 module.exports = CacheStore;
